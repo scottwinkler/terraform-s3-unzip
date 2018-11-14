@@ -77,13 +77,17 @@ func Handler(ctx context.Context, s3Event events.S3Event) error {
 			return err
 		}
 
-		//clean up
-		deleteObject(key, bucket)
+		//clean up if requested (1 == true, 0 == false)
+		deleteRequested := os.Getenv("DELETE_ZIP")
+		if deleteRequested == "1" {
+			deleteObject(key, bucket)
+		}
 		return nil
 	}
 	return nil
 }
 
+//getPrefixForS3Key gets the s3 folder that the object is in
 func getPrefixForS3Key(key string) string {
 	prefix := filepath.Dir(key)
 	if prefix == "." {
@@ -142,6 +146,7 @@ func download(bucket, key, path string) (string, error) {
 	return fileName, nil
 }
 
+//unzip will unzip a compressed file
 func unzip(src, dest string) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {
@@ -187,15 +192,18 @@ func upload(fileName, path, bucket string) error {
 	}
 	defer file.Close()
 	elements := strings.Split(path, "/")
-	//log.Printf("len: %d, elements: %v", len(elements), elements)
 	prefix := strings.Join(elements[:3], "/") + "/"
-	//log.Printf("file.Name(): %s prefix: %s\n", file.Name(), prefix)
 	key := strings.Replace(file.Name(), prefix, "", 1)
 	log.Printf("key: %s, bucket: %s", key, bucket)
+	contentType, ok := fileMimeMap[filepath.Ext(key)]
+	if !ok {
+		contentType = "application/octet-stream"
+	}
 	_, err = uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
-		Body:   file,
+		Bucket:      aws.String(bucket),
+		Key:         aws.String(key),
+		Body:        file,
+		ContentType: aws.String(contentType),
 	})
 	if err != nil {
 		return err
@@ -232,8 +240,9 @@ func uploadAll(path, bucket string) error {
 	return nil
 }
 
+//deleteObject deletes an object with a given key in a given bucket
 func deleteObject(key, bucket string) error {
-	log.Printf("Deleting original s3 object (%s::%s)", bucket, key)
+	log.Printf("Deleting s3 object (%s::%s)", bucket, key)
 	input := &s3.DeleteObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
@@ -244,4 +253,25 @@ func deleteObject(key, bucket string) error {
 		return err
 	}
 	return nil
+}
+
+//helper map for determining content type of files
+var fileMimeMap = map[string]string{
+	".jpg":  "image/jpeg",
+	".jepg": "image/jpeg",
+	".gif":  "image/gif",
+	".png":  "image/png",
+	".html": "text/html",
+	".txt":  "text/plain",
+	".css":  "text/css",
+	".js":   "application/javascript",
+	".ico":  "image/vnd.microsoft.icon",
+	".otf":  "application/font-sfnt",
+	".eot":  "application/vnd.ms-fontobject",
+	".svg":  "image/svg+xml",
+	".ttf":  "application/font-sfnt",
+	".woff": "application/font-woff",
+	".mp4":  "video/mp4",
+	".xml":  "text/xml",
+	".xsd":  "text/xml",
 }

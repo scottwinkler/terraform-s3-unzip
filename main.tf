@@ -54,6 +54,7 @@ resource "aws_lambda_function" "lambda_function" {
   environment {
     variables = {
       DST_BUCKET = "${local.dst_bucket}"
+      DELETE_ZIP = "${var.delete_zip}"
     }
   }
 }	

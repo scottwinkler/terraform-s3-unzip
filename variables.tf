@@ -19,3 +19,9 @@ variable "project_name" {
   default = ""
   description = "optional - identifier for your project"
 }
+
+variable "delete_zip" {
+  type = "string"
+  default = false
+  description = "optional - set true if you wish to delete the original zip file that is unzipped"
+}

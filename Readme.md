@@ -7,7 +7,8 @@ This is a terraform module for unzipping a file from put to an s3 bucket. It cre
 * src_bucket - (Required) The source bucket to listen for put object events
 * src_bucket_arn - (Required) The arn of the same source bucket
 * project_name - (Optional) Identifier for your project
-* dst_bucket - (Optional) he destination bucket to send the unzipped files, if not the source bucket
+* dst_bucket - (Optional) The destination bucket to send the unzipped files, if not the source bucket
+* delete_zip - (Optional) A boolean, set true if you wish to delete the original zip file. Default is false.
 
 
 ## Example Usage
@@ -17,6 +18,7 @@ module "test" {
     src_bucket = "${aws_s3_bucket.s3_bucket.bucket}"
     src_bucket_arn = "${aws_s3_bucket.s3_bucket.arn}"
     project_name = "test"
+    delete_zip = true
 }
 ```
 Credit to https://github.com/toshi0607/s3-unzipper-go for writing the go code for a similar idea.
