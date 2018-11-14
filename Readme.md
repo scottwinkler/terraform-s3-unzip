@@ -1,4 +1,5 @@
-#terraform-s3-unzip
+# terraform-s3-unzip
+
 This is a terraform module for unzipping a file from put to an s3 bucket. It creates a lambda function, role, policy and s3 bucket notification trigger. When a zip file is uploaded to the src s3 bucket, then it will unzip it, and upload those files to the dst bucket.
 
 ## Argument Reference
@@ -9,13 +10,13 @@ This is a terraform module for unzipping a file from put to an s3 bucket. It cre
 * dst_bucket - (Optional) he destination bucket to send the unzipped files, if not the source bucket
 
 
-#Example Usage
-
+## Example Usage
+```
 module "test" {
     source = "github.com/scottwinkler/terraform-s3-unzip"
     src_bucket = "${aws_s3_bucket.s3_bucket.bucket}"
     src_bucket_arn = "${aws_s3_bucket.s3_bucket.arn}"
     project_name = "test"
 }
-
+```
 Credit to https://github.com/toshi0607/s3-unzipper-go for writing the go code for a similar idea.
